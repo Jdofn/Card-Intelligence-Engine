@@ -3,8 +3,8 @@
 require "card_intelligence_engine"
 
 RSpec.describe CardIntelligenceEngine::Engine do
-  let(:local) { instance_double("LocalProvider") }
-  let(:remote) { instance_double("BincodesProvider") }
+  let(:local) { instance_double(CardIntelligenceEngine::LocalProvider) }
+  let(:remote) { instance_double(CardIntelligenceEngine::BincodesProvider) }
   subject(:engine) { described_class.new(local_provider: local, remote_provider: remote) }
 
   it "rejects full card numbers and non-numeric input before provider calls" do
