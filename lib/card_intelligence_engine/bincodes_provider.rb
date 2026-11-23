@@ -18,7 +18,7 @@ module CardIntelligenceEngine
     def lookup(bin)
       return nil if @api_key.nil? || @api_key.empty?
 
-      uri = URI("#{@endpoint}/bin/json/#{URI.encode_www_form_component(@api_key)}/#{bin}/")
+      uri = URI("#{@endpoint}/bin/json/#{URI.encode_www_form_component(@api_key)}/#{bin[0, 6]}/")
       response = Net::HTTP.start(uri.host, uri.port, use_ssl: true,
                                  open_timeout: @timeout, read_timeout: @timeout) do |http|
         http.get(uri.request_uri)
