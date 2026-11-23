@@ -23,7 +23,7 @@ module CardIntelligenceEngine
         raise ArgumentError, "callback payload must be a Hash" unless payload.is_a?(Hash)
         obj = payload.fetch("obj")
         values = TRANSACTION_FIELDS.map { |field| fetch_path(obj, field) }
-        expected = OpenSSL::HMAC.hexdigest("SHA512", @hmac_secret, values.join)
+        expected = OpenSSL::HMAC.hexdigest("SHA512", @hmac_secret, values.map { |value| value.nil? ? "" : value.to_s }.join)
         return true if secure_compare(expected, supplied_hmac.to_s.downcase)
         raise RequestError, "Paymob callback HMAC verification failed"
       rescue KeyError
