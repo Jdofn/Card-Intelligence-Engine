@@ -99,3 +99,22 @@ bundle exec rspec
 - [serverscom/credit-card-finder](https://github.com/serverscom/credit-card-finder) — reference for the local-first / API-fallback strategy, MIT.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution.
+
+
+## HTTP backend
+
+A minimal Rack/Sinatra API is included for deployment:
+
+```bash
+bundle install
+bundle exec rackup -p 3000
+```
+
+Endpoints:
+- `GET /health` — service health and sandbox mode.
+- `POST /api/checkout` — creates a Paymob Sandbox hosted checkout intention. Returns HTTP 503 until sandbox credentials are configured.
+- `POST /payments/paymob/webhook` — verifies the transaction callback HMAC and logs only a sanitized summary.
+
+Deploy with the included `Procfile` (Puma). Set the Paymob environment variables in the hosting provider's secret manager. The app intentionally does not accept card numbers or CVVs.
+
+**Deployment limitation:** this initial API does not yet persist orders, enforce durable webhook idempotency, or fulfill orders. Do not use it for live payments or production fulfillment. Before production, add a persistent order store, unique transaction constraints, expected amount/currency/reference reconciliation, webhook replay protection, and operational monitoring. Sandbox only.
