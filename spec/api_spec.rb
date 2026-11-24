@@ -35,6 +35,13 @@ RSpec.describe PaymentAPI do
     )
   end
 
+  it "returns metadata from the bundled local BIN dataset" do
+    get "/api/bin/497040"
+    expect(last_response).to be_ok
+    data = JSON.parse(last_response.body).fetch("data")
+    expect(data).to include("bin" => "497040", "brand" => "VISA", "source" => "local")
+  end
+
   it "rejects full card numbers on the BIN endpoint" do
     get "/api/bin/4111111111111111"
     expect(last_response.status).to eq(422)
