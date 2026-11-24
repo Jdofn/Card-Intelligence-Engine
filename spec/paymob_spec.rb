@@ -2,7 +2,7 @@
 
 require "json"
 require "rspec"
-require "card_intelligence_engine/paymob"
+require_relative "../lib/card_intelligence_engine/paymob"
 
 RSpec.describe CardIntelligenceEngine::Paymob::Client do
   let(:client) do
