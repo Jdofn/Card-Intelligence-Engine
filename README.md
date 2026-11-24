@@ -2,7 +2,7 @@
 
 A Ruby BIN/IIN metadata lookup engine with a browser UI, local-first metadata lookup, optional historical Gist fallback, optional Bincodes fallback, a privacy-preserving local card-format check, and a Paymob Sandbox hosted-checkout adapter.
 
-**Scope:** issuer/card-product metadata and local format checks only. The local card-format page runs the Luhn checksum entirely in the browser and never sends or stores the entered number. It cannot establish whether a card is active, funded, unexpired, or authorized. This service does not retrieve or validate CVVs.
+**Scope:** issuer/card-product metadata and local format checks only. The local card-format page runs the Luhn checksum entirely in the browser and never sends or stores the entered number. It cannot establish whether a card is active, funded, unexpired, or authorized. This service does not retrieve or validate CVVs. Its synthetic fixture endpoint returns scenario labels and non-numeric placeholders only; these are not payment credentials and cannot be used for transactions.
 
 ## Live service
 
@@ -10,6 +10,7 @@ A Ruby BIN/IIN metadata lookup engine with a browser UI, local-first metadata lo
 - Local card format + Luhn check: `/card-format-check.html` (browser-only; no network submission)
 - Health: `/health`
 - BIN/IIN metadata: `GET /api/bin/:bin` (6–8 numeric digits only)
+- Synthetic test fixtures: `GET /api/test-fixtures` and `GET /api/test-fixtures/:id` (non-payment placeholders only; no PAN/CVV values).
 - Paymob hosted checkout: `POST /api/checkout` (Sandbox only; returns HTTP 503 until test credentials are configured)
 - Paymob webhook: `POST /payments/paymob/webhook`
 - Payment return: `GET /payments/complete` (pending until the verified server callback arrives)
@@ -42,7 +43,7 @@ Set these only in Railway Variables/Secrets; never commit or paste secret values
 - `PAYMOB_NOTIFICATION_URL` — configured to this service's webhook endpoint.
 - `PAYMOB_REDIRECTION_URL` — configured to this service's payment-return endpoint.
 
-The customer enters card details directly on Paymob Hosted Checkout. This application never collects or stores PAN, CVV, or PIN. Use Paymob's official Sandbox test-card data for payment success/failure scenarios. The browser redirect is not treated as proof of payment; only a verified server-to-server webhook can confirm it.
+The customer enters card details directly on Paymob Hosted Checkout. This application never collects or stores PAN, CVV, or PIN. Use Paymob's official Sandbox test-card data for payment success/failure scenarios. The `/api/test-fixtures` endpoint is only for exercising application UI/state handling and is not a substitute for gateway Sandbox credentials. The browser redirect is not treated as proof of payment; only a verified server-to-server webhook can confirm it.
 
 ## Production limitation
 
