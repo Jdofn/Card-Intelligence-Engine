@@ -21,6 +21,8 @@ RSpec.describe PaymentAPI do
 
   it "keeps checkout disabled until sandbox credentials are configured" do
     %w[PAYMOB_SECRET_KEY PAYMOB_PUBLIC_KEY PAYMOB_INTEGRATION_ID].each { |key| ENV.delete(key) }
+    ENV["PAYMOB_NOTIFICATION_URL"] = "https://example.com/paymob/webhook"
+    ENV["PAYMOB_REDIRECTION_URL"] = "https://example.com/payment/return"
     post "/api/checkout",
          { amount_cents: 100, item_name: "Test", billing_data: { phone_number: "+201000000000" } }.to_json,
          "CONTENT_TYPE" => "application/json"
