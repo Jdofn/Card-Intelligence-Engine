@@ -3,7 +3,7 @@
 require "sinatra/base"
 require "json"
 require "securerandom"
-require "card_intelligence_engine"
+require_relative "lib/card_intelligence_engine"
 require_relative "lib/card_intelligence_engine/paymob"
 
 class PaymentAPI < Sinatra::Base
