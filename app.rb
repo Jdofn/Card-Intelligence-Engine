@@ -16,18 +16,64 @@ class PaymentAPI < Sinatra::Base
   before { content_type :json }
 
   get "/" do
-    {
-      service: "Card Intelligence Engine",
-      status: "online",
-      scope: ["BIN/IIN metadata lookup", "Paymob hosted checkout (Sandbox only)"],
-      endpoints: {
-        health: "GET /health",
-        bin_lookup: "GET /api/bin/:bin",
-        checkout: "POST /api/checkout",
-        paymob_webhook: "POST /payments/paymob/webhook"
-      },
-      security: "Never submit full card numbers, CVV, PIN, or payment credentials."
-    }.to_json
+    content_type :html
+    <<~HTML
+      <!doctype html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="BIN/IIN metadata lookup using public and local reference data.">
+        <title>Card Intelligence Engine</title>
+        <style>
+          :root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#0b1020;color:#e9eefb}
+          *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
+          main{width:min(720px,100%);background:#121a30;border:1px solid #273452;border-radius:22px;padding:clamp(22px,5vw,42px);box-shadow:0 24px 80px #0006}
+          .eyebrow{color:#7dd3fc;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+          h1{font-size:clamp(30px,6vw,46px);line-height:1.05;margin:14px 0}
+          p{color:#aebbd5;line-height:1.6}.form{display:flex;gap:10px;margin:26px 0 12px}
+          input{min-width:0;flex:1;background:#0b1224;border:1px solid #344566;color:white;border-radius:12px;padding:15px;font:inherit}
+          button{border:0;border-radius:12px;background:#38bdf8;color:#082033;font-weight:800;padding:0 20px;cursor:pointer}
+          button:disabled{opacity:.55;cursor:wait}.hint{font-size:13px}
+          pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1224;border:1px solid #273452;padding:18px;border-radius:12px;min-height:70px;color:#dbeafe}
+          footer{border-top:1px solid #273452;margin-top:24px;padding-top:18px;font-size:12px;color:#91a1bf}
+          @media(max-width:520px){.form{flex-direction:column}button{padding:14px}}
+        </style>
+      </head>
+      <body>
+        <main>
+          <div class="eyebrow">Card Intelligence Engine</div>
+          <h1>BIN / IIN Lookup</h1>
+          <p>Look up issuer and card metadata from the first 6–8 digits only. No payment-card validation or authorization testing is performed.</p>
+          <form class="form" id="lookup-form">
+            <input id="bin" name="bin" inputmode="numeric" autocomplete="off" minlength="6" maxlength="8" pattern="[0-9]{6,8}" placeholder="Enter 6–8 digit BIN/IIN" required aria-label="BIN or IIN prefix">
+            <button id="submit" type="submit">Look up</button>
+          </form>
+          <p class="hint">Do not enter a full card number, CVV, PIN, or other payment credentials.</p>
+          <pre id="result" aria-live="polite">Lookup results will appear here.</pre>
+          <footer>Metadata only · Local reference data · Optional Bincodes provider · Paymob checkout remains Sandbox-only</footer>
+        </main>
+        <script>
+          const form=document.getElementById("lookup-form");
+          const input=document.getElementById("bin");
+          const output=document.getElementById("result");
+          const button=document.getElementById("submit");
+          form.addEventListener("submit",async(event)=>{
+            event.preventDefault();
+            const bin=input.value.trim();
+            if(!/^[0-9]{6,8}$/.test(bin)){output.textContent="Enter a 6–8 digit BIN/IIN prefix.";return;}
+            button.disabled=true;output.textContent="Looking up metadata…";
+            try{
+              const response=await fetch("/api/bin/"+encodeURIComponent(bin),{headers:{"Accept":"application/json"}});
+              const payload=await response.json();
+              output.textContent=JSON.stringify(payload,null,2);
+            }catch(error){output.textContent="Lookup service is temporarily unavailable.";}
+            finally{button.disabled=false;}
+          });
+        </script>
+      </body>
+      </html>
+    HTML
   end
 
   get "/health" do
