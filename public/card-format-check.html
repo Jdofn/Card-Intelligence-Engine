@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Local Card Format Check · Card Intelligence Engine</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0b1020;color:#e9eefb}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:22px}
+    main{width:min(620px,100%);background:#121a30;border:1px solid #273452;border-radius:20px;padding:clamp(22px,5vw,38px)}
+    h1{margin:0 0 12px;font-size:clamp(26px,5vw,38px)}p{color:#aebbd5;line-height:1.6}
+    label{display:block;margin:24px 0 8px;font-weight:700}
+    input{width:100%;background:#0b1224;border:1px solid #344566;color:white;border-radius:12px;padding:15px;font:inherit}
+    button{margin-top:12px;border:0;border-radius:12px;background:#38bdf8;color:#082033;font-weight:800;padding:14px 20px;cursor:pointer}
+    #result{margin-top:18px;padding:16px;border:1px solid #344566;border-radius:12px;min-height:56px}
+    .warning{font-size:13px;border-left:3px solid #fbbf24;padding-left:12px}
+    a{color:#7dd3fc}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Local Card Format Check</h1>
+  <p>Checks only the number's basic format and Luhn checksum in this browser. This does not contact a bank or payment network and cannot establish whether a card is active, funded, unexpired, or authorized.</p>
+  <label for="card">Card number</label>
+  <input id="card" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="32" placeholder="Enter a card number you own">
+  <button id="check" type="button">Check format locally</button>
+  <div id="result" aria-live="polite">No number has been checked.</div>
+  <p class="warning">Privacy: the number is processed only in this page's memory. It is not sent to the server, saved, or logged. Do not enter a CVV, PIN, or another person's card details.</p>
+  <p><a href="/">Back to BIN / IIN lookup</a></p>
+</main>
+<script>
+(() => {
+  const input = document.getElementById("card");
+  const result = document.getElementById("result");
+  document.getElementById("check").addEventListener("click", () => {
+    const raw = input.value;
+    const digits = raw.replace(/[ -]/g, "");
+    if (!/^\d{12,19}$/.test(digits)) {
+      result.textContent = "Format check failed: enter 12–19 digits (spaces and hyphens are allowed).";
+      return;
+    }
+    let sum = 0;
+    let doubleDigit = false;
+    for (let i = digits.length - 1; i >= 0; i--) {
+      let digit = Number(digits[i]);
+      if (doubleDigit) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      sum += digit;
+      doubleDigit = !doubleDigit;
+    }
+    result.textContent = sum % 10 === 0
+      ? "Format and Luhn checksum: passed. This does NOT verify card validity or CVV."
+      : "Format passed, but Luhn checksum: failed. This does NOT contact any payment provider.";
+  });
+  window.addEventListener("pagehide", () => { input.value = ""; });
+})();
+</script>
+</body>
+</html>
