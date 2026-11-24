@@ -52,6 +52,12 @@ class PaymentAPI < Sinatra::Base
           </form>
           <p class="hint">Do not enter a full card number, CVV, PIN, or other payment credentials.</p>
           <pre id="result" aria-live="polite">Lookup results will appear here.</pre>
+          <section aria-labelledby="synthetic-title" style="margin-top:24px;padding:18px;border:1px solid #344566;border-radius:14px;background:#0e172b">
+            <div class="eyebrow">Separate category</div>
+            <h2 id="synthetic-title">Synthetic Test Data</h2>
+            <p>Local-only test scenarios, card-brand recognition, input formatting and structural validation. No real card credentials, CVV generation, issuer probing or payment authorization.</p>
+            <a href="/api/categories/synthetic-test-data" style="color:#7dd3fc">View category details</a>
+          </section>
           <footer>Metadata only · Local reference data · Optional Bincodes provider · Paymob checkout remains Sandbox-only</footer>
         </main>
         <script>
@@ -75,6 +81,57 @@ class PaymentAPI < Sinatra::Base
       </body>
       </html>
     HTML
+  end
+
+  get "/api/categories" do
+    {
+      categories: [
+        {
+          id: "bin-metadata",
+          name: "BIN / IIN Metadata",
+          status: "active",
+          endpoint: "/api/bin/:bin"
+        },
+        {
+          id: "synthetic-test-data",
+          name: "Synthetic Test Data",
+          status: "separate_local_testing_category",
+          endpoint: "/api/categories/synthetic-test-data"
+        },
+        {
+          id: "paymob-sandbox",
+          name: "Paymob Sandbox",
+          status: "sandbox_only",
+          endpoint: "/api/checkout"
+        }
+      ]
+    }.to_json
+  end
+
+  get "/api/categories/synthetic-test-data" do
+    {
+      id: "synthetic-test-data",
+      name: "Synthetic Test Data",
+      upstream_project: "ccgeneratororg/ccgenerator-npm",
+      upstream_url: "https://github.com/ccgeneratororg/ccgenerator-npm",
+      package: "@ccgenerator/test-cards",
+      package_url: "https://www.npmjs.com/package/@ccgenerator/test-cards",
+      license: "MIT",
+      integration_mode: "reference_and_local_ui_testing",
+      included_scope: [
+        "Card-brand recognition rules",
+        "Input formatting and supported-length reference",
+        "Local structural and Luhn validation",
+        "Non-credential UI scenario fixtures"
+      ],
+      excluded_scope: [
+        "PAN or CVV generation",
+        "Live checkout submission of generated values",
+        "Issuer or CVV verification",
+        "Authorization probing"
+      ],
+      safety_notice: "Synthetic values are not real payment credentials and do not establish card validity, funds, or authorization. Use official Paymob Sandbox test values for payment-flow tests."
+    }.to_json
   end
 
   get "/api/test-fixtures" do
