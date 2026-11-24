@@ -22,6 +22,13 @@ class PaymentAPI < Sinatra::Base
     amount = Integer(body.fetch("amount_cents"))
     halt 422, { error: "amount_must_be_positive" }.to_json unless amount.positive?
 
+    required_urls = %w[PAYMOB_NOTIFICATION_URL PAYMOB_REDIRECTION_URL]
+    missing_urls = required_urls.select { |key| ENV[key].to_s.empty? }
+    unless missing_urls.empty?
+      status 503
+      halt({ error: "sandbox_callback_urls_not_configured" }.to_json)
+    end
+
     client = CardIntelligenceEngine::Paymob::Client.new
     result = client.create_checkout(
       amount_cents: amount,
