@@ -1,12 +1,13 @@
 # Card Intelligence Engine
 
-A Ruby BIN/IIN metadata lookup engine with a small browser UI, local-first metadata lookup, optional Bincodes fallback, and a Paymob Sandbox hosted-checkout adapter.
+A Ruby BIN/IIN metadata lookup engine with a small browser UI, local-first metadata lookup, optional Bincodes fallback, a privacy-preserving local card-format check, and a Paymob Sandbox hosted-checkout adapter.
 
-**Scope:** issuer/card-product metadata only. This service does not check whether cards are live, test payment authorization, retrieve CVVs, or accept full card numbers.
+**Scope:** issuer/card-product metadata and local format checks only. The local card-format page runs the Luhn checksum entirely in the browser and never sends or stores the entered number. It cannot establish whether a card is active, funded, unexpired, or authorized. This service does not retrieve or validate CVVs.
 
 ## Live service
 
-- Browser lookup: `/`
+- Browser BIN/IIN lookup: `/`
+- Local card format + Luhn check: `/card-format-check.html` (browser-only; no network submission)
 - Health: `/health`
 - BIN/IIN metadata: `GET /api/bin/:bin` (6–8 numeric digits only)
 - Paymob hosted checkout: `POST /api/checkout` (Sandbox only; returns HTTP 503 until test credentials are configured)
@@ -38,11 +39,11 @@ Set these only in Railway Variables/Secrets; never commit or paste secret values
 - `PAYMOB_NOTIFICATION_URL` — configured to this service's webhook endpoint.
 - `PAYMOB_REDIRECTION_URL` — configured to this service's payment-return endpoint.
 
-The customer enters card details directly on Paymob Hosted Checkout. This application never collects or stores PAN, CVV, or PIN. The browser redirect is not treated as proof of payment; only a verified server-to-server webhook can confirm it.
+The customer enters card details directly on Paymob Hosted Checkout. This application never collects or stores PAN, CVV, or PIN. Use Paymob's official Sandbox test-card data for payment success/failure scenarios. The browser redirect is not treated as proof of payment; only a verified server-to-server webhook can confirm it.
 
 ## Production limitation
 
-This deployment is suitable for BIN/IIN metadata lookup and Sandbox integration testing. It is **not ready for live payments or order fulfillment**: it does not yet persist orders, enforce durable webhook idempotency, reconcile amount/currency/reference against a stored order, or provide replay protection. Do not enable live payment credentials until those controls and monitoring are implemented and reviewed.
+This deployment is suitable for BIN/IIN metadata lookup, local format checks, and Sandbox integration testing once credentials are configured. It is **not ready for live payments or order fulfillment**: it does not yet persist orders, enforce durable webhook idempotency, reconcile amount/currency/reference against a stored order, or provide replay protection. Do not enable live payment credentials until those controls and monitoring are implemented and reviewed.
 
 ## Upstream projects
 
