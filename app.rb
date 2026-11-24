@@ -80,6 +80,14 @@ class PaymentAPI < Sinatra::Base
     { status: "ok", service: "card-intelligence-engine", payment_mode: "sandbox_only" }.to_json
   end
 
+  get "/payments/complete" do
+    {
+      status: "pending_confirmation",
+      reference: params["reference"],
+      message: "Payment status is confirmed by the verified Paymob server callback, not by this browser redirect."
+    }.compact.to_json
+  end
+
   get "/api/bin/:bin" do
     result = CardIntelligenceEngine.lookup(params[:bin])
     status 200
