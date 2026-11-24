@@ -5,16 +5,18 @@ require "uri"
 
 module CardIntelligenceEngine
   # Reads the user-supplied 2020 Gist as a last-resort metadata source.
-  # It is intentionally metadata-only and never receives full card data.
+  # It is metadata-only and never receives full card data.
   class LegacyGistProvider
     SOURCE_URL = "https://gist.githubusercontent.com/mahmoudimus/4bdf559c943d4c69640a748e1b94aa3d/raw/bin_db.sql"
     DATASET_DATE = "2020-06-30"
     CACHE_TTL = 86_400
+    RETRY_DELAY = 300
 
     def initialize(http: Net::HTTP, clock: -> { Time.now })
       @http = http
       @clock = clock
       @cached_at = nil
+      @retry_after = nil
       @categories = {}
       @records = []
     end
@@ -39,7 +41,7 @@ module CardIntelligenceEngine
         "source_url" => SOURCE_URL
       }.compact
     rescue StandardError
-      # This historical, optional source must never take down primary lookup.
+      @retry_after = @clock.call + RETRY_DELAY
       nil
     end
 
@@ -47,6 +49,7 @@ module CardIntelligenceEngine
 
     def refresh_if_needed
       return if @cached_at && (@clock.call - @cached_at) < CACHE_TTL
+      return if @retry_after && @clock.call < @retry_after
 
       uri = URI(SOURCE_URL)
       response = @http.start(uri.host, uri.port, use_ssl: true,
@@ -73,6 +76,7 @@ module CardIntelligenceEngine
       @categories = categories
       @records = records
       @cached_at = @clock.call
+      @retry_after = nil
     end
 
     def matches?(pattern, bin)
@@ -85,19 +89,17 @@ module CardIntelligenceEngine
 
       if value.include?("*")
         regex = Regexp.escape(value).gsub("\\*", "\\d")
-        return !!Regexp.new("\\A#{regex}\\z").match(bin)
+        return !!Regexp.new("\\A#{regex}\\d*\\z").match(bin)
       end
 
       range = value.match(/\A(\d+)\s*(?:-|to)\s*(\d+)\z/i)
       return false unless range
 
       first, last = range.captures
-      width = first.length
-      last = first[0, width - last.length] + last if last.length < width
+      last = first[0, first.length - last.length] + last if last.length < first.length
       return false unless first.length == last.length && first.match?(/\A\d+\z/) && last.match?(/\A\d+\z/)
 
-      number = bin.to_i
-      number.between?(first.to_i, last.to_i)
+      bin.to_i.between?(first.to_i, last.to_i)
     end
 
     def brand_for(category, description)
