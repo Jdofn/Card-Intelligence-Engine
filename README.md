@@ -55,3 +55,14 @@ This deployment is suitable for BIN/IIN metadata lookup, local format checks, an
 - [serverscom/credit-card-finder](https://github.com/serverscom/credit-card-finder) — reference for local-first / API-fallback lookup, MIT.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution.
+
+
+## Separate category: Synthetic Test Data
+
+The upstream project [ccgeneratororg/ccgenerator-npm](https://github.com/ccgeneratororg/ccgenerator-npm) is registered as its own category, separate from BIN/IIN metadata and Paymob Sandbox.
+
+- Category index: `GET /api/categories`
+- Category details: `GET /api/categories/synthetic-test-data`
+- Upstream package: [@ccgenerator/test-cards](https://www.npmjs.com/package/@ccgenerator/test-cards) (MIT).
+
+The category documents safe local-testing capabilities: brand recognition rules, supported-length references, input formatting, local structural/Luhn checks, and non-credential UI scenario fixtures. The upstream PAN/CVV generator is **not wired into payment routes** and generated values must never be sent to a live gateway. No issuer, funds, expiry, CVV, or authorization verification is provided. For payment-flow testing, use Paymob's official Sandbox test values on its hosted checkout.
