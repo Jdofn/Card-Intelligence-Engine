@@ -3,6 +3,7 @@
 require "sinatra/base"
 require "json"
 require "securerandom"
+require "card_intelligence_engine"
 require_relative "lib/card_intelligence_engine/paymob"
 
 class PaymentAPI < Sinatra::Base
@@ -12,8 +13,38 @@ class PaymentAPI < Sinatra::Base
 
   before { content_type :json }
 
+  get "/" do
+    {
+      service: "Card Intelligence Engine",
+      status: "online",
+      scope: ["BIN/IIN metadata lookup", "Paymob hosted checkout (Sandbox only)"],
+      endpoints: {
+        health: "GET /health",
+        bin_lookup: "GET /api/bin/:bin",
+        checkout: "POST /api/checkout",
+        paymob_webhook: "POST /payments/paymob/webhook"
+      },
+      security: "Never submit full card numbers, CVV, PIN, or payment credentials."
+    }.to_json
+  end
+
   get "/health" do
     { status: "ok", service: "card-intelligence-engine", payment_mode: "sandbox_only" }.to_json
+  end
+
+  get "/api/bin/:bin" do
+    result = CardIntelligenceEngine.lookup(params[:bin])
+    status 200
+    { data: result }.to_json
+  rescue CardIntelligenceEngine::InvalidBIN
+    status 422
+    { error: "invalid_bin_iin", message: "Supply only a 6–8 digit BIN/IIN prefix; full card numbers are not accepted." }.to_json
+  rescue CardIntelligenceEngine::NotFound
+    status 404
+    { error: "bin_metadata_not_found" }.to_json
+  rescue CardIntelligenceEngine::ProviderError
+    status 502
+    { error: "metadata_provider_unavailable" }.to_json
   end
 
   post "/api/checkout" do
