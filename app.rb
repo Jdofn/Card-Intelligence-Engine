@@ -5,6 +5,7 @@ require "json"
 require "securerandom"
 require_relative "lib/card_intelligence_engine"
 require_relative "lib/card_intelligence_engine/paymob"
+require_relative "lib/card_intelligence_engine/test_fixture_generator"
 
 class PaymentAPI < Sinatra::Base
   set :show_exceptions, false
@@ -74,6 +75,21 @@ class PaymentAPI < Sinatra::Base
       </body>
       </html>
     HTML
+  end
+
+  get "/api/test-fixtures" do
+    {
+      mode: "synthetic_only",
+      warning: "These labels are not card numbers, CVVs, or payment credentials and cannot be used for payments.",
+      fixtures: CardIntelligenceEngine::TestFixtureGenerator.all
+    }.to_json
+  end
+
+  get "/api/test-fixtures/:id" do
+    fixture = CardIntelligenceEngine::TestFixtureGenerator.find(params[:id])
+    halt 404, { error: "test_fixture_not_found" }.to_json unless fixture
+
+    { mode: "synthetic_only", fixture: fixture }.to_json
   end
 
   get "/health" do
