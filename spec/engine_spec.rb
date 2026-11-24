@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "card_intelligence_engine"
+require_relative "../lib/card_intelligence_engine"
 
 RSpec.describe CardIntelligenceEngine::Engine do
   let(:local) { instance_double(CardIntelligenceEngine::LocalProvider) }
