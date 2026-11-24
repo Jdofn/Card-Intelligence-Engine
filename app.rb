@@ -10,7 +10,8 @@ class PaymentAPI < Sinatra::Base
   set :show_exceptions, false
   set :raise_errors, false
   set :logging, false
-  set :host_authorization, permitted_hosts: ["example.org", "localhost", "127.0.0.1", "hamsa-aviator-api-production.up.railway.app"]
+  # This API does not construct absolute URLs from the Host header; allow Railway internal health probes.
+  set :host_authorization, permitted_hosts: []
 
   before { content_type :json }
 
