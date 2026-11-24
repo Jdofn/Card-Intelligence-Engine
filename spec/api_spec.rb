@@ -19,6 +19,20 @@ RSpec.describe PaymentAPI do
     )
   end
 
+  it "exposes service information at the root endpoint" do
+    get "/"
+    expect(last_response).to be_ok
+    expect(JSON.parse(last_response.body).fetch("endpoints")).to include(
+      "bin_lookup" => "GET /api/bin/:bin"
+    )
+  end
+
+  it "rejects full card numbers on the BIN endpoint" do
+    get "/api/bin/4111111111111111"
+    expect(last_response.status).to eq(422)
+    expect(JSON.parse(last_response.body)).to include("error" => "invalid_bin_iin")
+  end
+
   it "keeps checkout disabled until sandbox credentials are configured" do
     %w[PAYMOB_SECRET_KEY PAYMOB_PUBLIC_KEY PAYMOB_INTEGRATION_ID].each { |key| ENV.delete(key) }
     ENV["PAYMOB_NOTIFICATION_URL"] = "https://example.com/paymob/webhook"
