@@ -1,7 +1,6 @@
 source "https://rubygems.org"
 
-gemspec
-
+gem "credit_card_bins", ">= 0.0.1"
 gem "sinatra", "~> 4.1"
 gem "puma", "~> 6.6"
 
