@@ -26,6 +26,15 @@ RSpec.describe PaymentAPI do
     expect(last_response.body).to include("BIN / IIN Lookup", "/api/bin/")
   end
 
+  it "does not treat a browser redirect as payment confirmation" do
+    get "/payments/complete?success=true&reference=test-ref"
+    expect(last_response).to be_ok
+    expect(JSON.parse(last_response.body)).to include(
+      "status" => "pending_confirmation",
+      "reference" => "test-ref"
+    )
+  end
+
   it "rejects full card numbers on the BIN endpoint" do
     get "/api/bin/4111111111111111"
     expect(last_response.status).to eq(422)
